@@ -2,8 +2,9 @@ import mysql.connector as mariadb
 import datetime
 from stringset import StringSet
 
-BEFORE_OPEN = True
-AFTER_CLOSE = False
+BEFORE_OPEN = 0
+AFTER_CLOSE = 1
+UNSPECIFIED = 2
 
 
 def convert_date(date):
@@ -12,7 +13,7 @@ def convert_date(date):
 
 class CalendarAPI:
 
-    def add_ticker(self, date, ticker, morning):
+    def add_ticker(self, date, ticker, time):
         '''
         This function looks up the [date:datetime] in the database.
         If it does not exist, a new row with that date is created.
@@ -25,47 +26,64 @@ class CalendarAPI:
         if (temp):
             row = temp[0]
             tickers = StringSet()
-            if(morning):
+            if(time == BEFORE_OPEN):
                 tickers.from_string(row[1])
                 tickers.insert(ticker)
                 sql = "UPDATE calendar SET before_open = %s WHERE date = %s"
                 val = (tickers.to_string(), convert_date(date))
                 self.cur.execute(sql, val)
-            else:
+            elif(time == AFTER_CLOSE):
                 tickers.from_string(row[2])
                 tickers.insert(ticker)
                 sql = "UPDATE calendar SET after_close = %s WHERE date = %s"
                 val = (tickers.to_string(), convert_date(date))
                 self.cur.execute(sql, val)
+            else:
+                tickers.from_string(row[3])
+                tickers.insert(ticker)
+                sql = "UPDATE calendar SET unspecified = %s WHERE date = %s"
+                val = (tickers.to_string(), convert_date(date))
+                self.cur.execute(sql, val)
         else:
-            if (morning):
-                sql = "INSERT INTO calendar (date, before_open, after_close) VALUES (%s, %s, %s)"
-                val = (convert_date(date), ticker, None)
+            if (time == BEFORE_OPEN):
+                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified) VALUES (%s, %s, %s, %s)"
+                val = (convert_date(date), ticker, None, None)
+                # print("run " + sql % val)
+                self.cur.execute(sql, val)
+            elif(time == AFTER_CLOSE):
+                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified) VALUES (%s, %s, %s, %s)"
+                val = (convert_date(date), None, ticker, None)
                 # print("run " + sql % val)
                 self.cur.execute(sql, val)
             else:
-                sql = "INSERT INTO calendar (date, before_open, after_close) VALUES (%s, %s, %s)"
-                val = (convert_date(date), None, ticker)
+                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified) VALUES (%s, %s, %s, %s)"
+                val = (convert_date(date), None, None, ticker)
                 # print("run " + sql % val)
                 self.cur.execute(sql, val)
 
-    def remove_ticker(self, date, ticker, morning):
+    def remove_ticker(self, date, ticker, time):
         self.cur.execute(
             "SELECT * FROM calendar WHERE date = '%s'" % convert_date(date))
         temp = self.cur.fetchall()
         if(temp):
             row = temp[0]
             tickers = StringSet()
-            if(morning):
+            if(time == BEFORE_OPEN):
                 tickers.from_string(row[1])
                 tickers.remove(ticker)
                 sql = "UPDATE calendar SET before_open = %s WHERE date = %s"
                 val = (tickers.to_string(), convert_date(date))
                 self.cur.execute(sql, val)
-            else:
+            elif(time == AFTER_CLOSE):
                 tickers.from_string(row[2])
                 tickers.remove(ticker)
                 sql = "UPDATE calendar SET after_close = %s WHERE date = %s"
+                val = (tickers.to_string(), convert_date(date))
+                self.cur.execute(sql, val)
+            else:
+                tickers.from_string(row[3])
+                tickers.remove(ticker)
+                sql = "UPDATE calendar SET unspecified = %s WHERE date = %s"
                 val = (tickers.to_string(), convert_date(date))
                 self.cur.execute(sql, val)
 
@@ -81,30 +99,30 @@ class CalendarAPI:
 
 
 # TESTS
-capi = CalendarAPI()
+# capi = CalendarAPI()
 
-# Alphabetically sorted after insertion test
-some_day = datetime.date(2020, 6, 16)
-capi.add_ticker(some_day, 'TSLA', AFTER_CLOSE)
-capi.add_ticker(some_day, 'AAPL', AFTER_CLOSE)
-capi.add_ticker(some_day, 'DAL', AFTER_CLOSE)
-capi.add_ticker(some_day, 'BAC', AFTER_CLOSE)
-capi.add_ticker(some_day, 'BA', AFTER_CLOSE)
+# # Alphabetically sorted after insertion test
+# some_day = datetime.date(2020, 6, 16)
+# capi.add_ticker(some_day, 'TSLA', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'AAPL', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'DAL', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'BAC', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'BA', AFTER_CLOSE)
 
-# before_open and after_close shouldn't affect each other. duplicates across two
-# columns is allowed.
-some_day = datetime.date(2020, 6, 17)
-capi.add_ticker(some_day, 'AAPL', BEFORE_OPEN)
-capi.add_ticker(some_day, 'AAPL', AFTER_CLOSE)
-capi.add_ticker(some_day, 'AAPL', BEFORE_OPEN)
-capi.add_ticker(some_day, 'AAPL', AFTER_CLOSE)
-capi.add_ticker(some_day, 'AAPL', BEFORE_OPEN)
+# # before_open and after_close shouldn't affect each other. duplicates across two
+# # columns is allowed.
+# some_day = datetime.date(2020, 6, 17)
+# capi.add_ticker(some_day, 'AAPL', BEFORE_OPEN)
+# capi.add_ticker(some_day, 'AAPL', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'AAPL', UNSPECIFIED)
+# capi.add_ticker(some_day, 'AAPL', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'AAPL', BEFORE_OPEN)
 
-# Inserting duplicate tickers test
-some_day = datetime.date(2020, 6, 18)
-capi.add_ticker(some_day, 'LULU', AFTER_CLOSE)
-capi.add_ticker(some_day, 'LULU', AFTER_CLOSE)
-capi.add_ticker(some_day, 'MSFT', AFTER_CLOSE)
-capi.add_ticker(some_day, 'LULU', AFTER_CLOSE)
-capi.add_ticker(some_day, 'MSFT', AFTER_CLOSE)
-capi.remove_ticker(some_day, 'PPL', AFTER_CLOSE)
+# # Inserting duplicate tickers test
+# some_day = datetime.date(2020, 6, 18)
+# capi.add_ticker(some_day, 'LULU', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'LULU', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'MSFT', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'LULU', AFTER_CLOSE)
+# capi.add_ticker(some_day, 'MSFT', AFTER_CLOSE)
+# capi.remove_ticker(some_day, 'PPL', AFTER_CLOSE)
