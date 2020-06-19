@@ -30,12 +30,17 @@ class StringSet:
         ret = ret[:-1]
         return ret
 
+    def from_string_list(self, str_lst):
+        self.data = str_lst
+        self.data.sort()
+
     def from_string(self, some_string):
         self.clear_data()
         if(some_string == None):
             self.data = []
         else:
             self.data = some_string.split(',')
+            self.data.sort()
 
 
 # TESTS
