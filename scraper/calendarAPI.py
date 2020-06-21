@@ -9,7 +9,7 @@ TAS = 3
 
 
 def convert_date(date):
-    return date.st~rftime('%Y-%m-%d')
+    return date.strftime('%Y-%m-%d')
 
 
 class CalendarAPI:
