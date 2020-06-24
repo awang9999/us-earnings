@@ -4,8 +4,8 @@ import datetime
 
 mydb = mariadb.connect(
     host="localhost",
-    user="root",
-    password="",
+    user="admin",
+    password="agsd-lt2018",
     database="usearnings"
 )
 

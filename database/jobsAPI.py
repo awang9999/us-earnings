@@ -22,8 +22,8 @@ class JobsAPI:
         super().__init__()
         self.con = mariadb.connect(
             host="localhost",
-            user="root",
-            password="",
+            user="admin",
+            password="agsd-lt2018",
             database="usearnings"
         )
         self.cur = self.con.cursor()

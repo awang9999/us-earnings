@@ -4,7 +4,7 @@ mydb = mariadb.connect(
     host="localhost",
     user="admin",
     password="agsd-lt2018",
-    # database="usearnings"
+    database="usearnings"
 )
 
 cursor = mydb.cursor()
