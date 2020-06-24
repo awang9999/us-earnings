@@ -2,15 +2,15 @@ import mysql.connector as mariadb
 
 mydb = mariadb.connect(
     host="localhost",
-    user="root",
-    password="",
-    database="usearnings"
+    user="admin",
+    password="agsd-lt2018",
+    # database="usearnings"
 )
 
 cursor = mydb.cursor()
 
-# cursor.execute(
-#     "CREATE DATABASE usearnings CHARACTER SET ascii COLLATE ascii_general_ci;")
+cursor.execute(
+    "CREATE DATABASE usearnings CHARACTER SET ascii COLLATE ascii_general_ci;")
 
 cursor.execute(
     "CREATE TABLE calendar (date DATE, before_open VARCHAR(511), after_close VARCHAR(511), unspecified VARCHAR(511), tas VARCHAR(511));")
