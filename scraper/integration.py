@@ -39,5 +39,6 @@ def scrape_between_range(start_date, end_date):
 
 day1 = datetime.date(2020, 6, 24)
 day2 = datetime.date(2021, 6, 17)
+day3 = datetime.date(2021, 6, 24)
 
-until_EOY = scrape_between_range(day1, day2)
+until_EOY = scrape_between_range(day2, day3)

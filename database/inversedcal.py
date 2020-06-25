@@ -17,7 +17,7 @@ def create_table():
         "CREATE TABLE ticker_dates (ticker VARCHAR(255), dates VARCHAR(511));")
 
 
-def inverse_calendar():
+def inverse_calendar(debug = False):
     sql = "SELECT * FROM calendar"
     cur.execute(sql)
     for row in cur.fetchall():
@@ -32,16 +32,16 @@ def inverse_calendar():
         tas.from_string(row[4])
 
         for t in b_open.data:
-            insert_date(t, day)
+            insert_date(t, day, debug)
 
         for t in a_close.data:
-            insert_date(t, day)
+            insert_date(t, day, debug)
 
         for t in unspecified.data:
-            insert_date(t, day)
+            insert_date(t, day, debug)
 
         for t in tas.data:
-            insert_date(t, day)
+            insert_date(t, day, debug)
 
 
 def insert_date(ticker, date, debug=False):
@@ -58,12 +58,14 @@ def insert_date(ticker, date, debug=False):
         if debug:
             print(sql)
         cur.execute(sql)
+        mydb.commit()
     else:
         sql = "INSERT INTO ticker_dates (ticker, dates) VALUES ('{}', '{}')".format(
             ticker, date.isoformat())
         if debug:
             print(sql)
         cur.execute(sql)
+        mydb.commit()
 
 
 def remove_date(ticker, date, debug=False):
@@ -80,6 +82,7 @@ def remove_date(ticker, date, debug=False):
         if debug:
             print(sql)
         cur.execute(sql)
+        mydb.commit()
     else:
         print("Attempting to remove from a ticker that is not indexed")
 
@@ -89,8 +92,8 @@ class Ticker_Explorer:
         super().__init__()
         self.con = mariadb.connect(
             host="localhost",
-            user="root",
-            password="",
+            user="admin",
+            password="agsd-lt2018",
             database="usearnings"
         )
         self.cur = self.con.cursor()
@@ -120,7 +123,9 @@ class Ticker_Explorer:
 # insert_date("AFMD", datetime.date(2020, 6, 25))
 # remove_date("AFMD", datetime.date(2020, 6, 23))
 
-# inverse_calendar()
+# create_table()
+
+# inverse_calendar(debug=True)
 
 te = Ticker_Explorer()
 print(te.get_dates("AMZN"))

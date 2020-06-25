@@ -1,4 +1,3 @@
-from jobsAPI import JobsAPI
 from calendarAPI import CalendarAPI
 from stringset import StringSet
 from datetime import date
@@ -14,3 +13,5 @@ capi.add_ticker(day, 'KMX', BEFORE_OPEN)
 capi.add_ticker(day, 'LITB', BEFORE_OPEN)
 capi.add_ticker(day, 'JBL', BEFORE_OPEN)
 capi.add_ticker(day, 'LBYYQ', BEFORE_OPEN)
+
+capi.remove_date(day)

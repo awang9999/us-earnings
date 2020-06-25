@@ -7,11 +7,6 @@ AFTER_CLOSE = 1
 UNSPECIFIED = 2
 TAS = 3
 
-
-def convert_date(date):
-    return date.strftime('%Y-%m-%d')
-
-
 class CalendarAPI:
 
     def add_ticker(self, date, ticker, time):
@@ -22,7 +17,7 @@ class CalendarAPI:
         or after_close list in the database.
         '''
         self.cur.execute(
-            "SELECT * FROM calendar WHERE date = '%s'" % convert_date(date))
+            "SELECT * FROM calendar WHERE date = '%s'" % date.isoformat())
         temp = self.cur.fetchall()
         if (temp):
             row = temp[0]
@@ -30,52 +25,41 @@ class CalendarAPI:
             if(time == BEFORE_OPEN):
                 tickers.from_string(row[1])
                 tickers.insert(ticker)
-                sql = "UPDATE calendar SET before_open = %s WHERE date = %s"
-                val = (tickers.to_string(), convert_date(date))
-                self.cur.execute(sql, val)
+                sql = "UPDATE calendar SET before_open = '{}' WHERE date = '{}'".format(tickers.to_string(), date.isoformat())
+                self.cur.execute(sql)
             elif(time == AFTER_CLOSE):
                 tickers.from_string(row[2])
                 tickers.insert(ticker)
-                sql = "UPDATE calendar SET after_close = %s WHERE date = %s"
-                val = (tickers.to_string(), convert_date(date))
-                self.cur.execute(sql, val)
+                sql = "UPDATE calendar SET after_close = '{}' WHERE date = '{}'".format(tickers.to_string(), date.isoformat())
+                self.cur.execute(sql)
             elif(time == UNSPECIFIED):
                 tickers.from_string(row[3])
                 tickers.insert(ticker)
-                sql = "UPDATE calendar SET unspecified = %s WHERE date = %s"
-                val = (tickers.to_string(), convert_date(date))
-                self.cur.execute(sql, val)
+                sql = "UPDATE calendar SET unspecified = '{}' WHERE date = '{}'".format(tickers.to_string(), date.isoformat())
+                self.cur.execute(sql)
             else:
                 tickers.from_string(row[4])
                 tickers.insert(ticker)
-                sql = "UPDATE calendar SET tas = %s WHERE date = %s"
-                val = (tickers.to_string(), convert_date(date))
-                self.cur.execute(sql, val)
+                sql = "UPDATE calendar SET tas = '{}' WHERE date = '{}'".format(tickers.to_string(), date.isoformat())
+                self.cur.execute(sql)
         else:
             if (time == BEFORE_OPEN):
-                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified, tas) VALUES (%s, %s, %s, %s, %s)"
-                val = (convert_date(date), ticker, None, None, None)
-                # print("run " + sql % val)
-                self.cur.execute(sql, val)
+                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified, tas) VALUES ('{}', '{}', NULL, NULL, NULL)".format(date.isoformat(), ticker)
+                self.cur.execute(sql)
             elif(time == AFTER_CLOSE):
-                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified, tas) VALUES (%s, %s, %s, %s, %s)"
-                val = (convert_date(date), None, ticker, None, None)
-                # print("run " + sql % val)
-                self.cur.execute(sql, val)
+                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified, tas) VALUES ('{}', NULL, '{}', NULL, NULL)".format(date.isoformat(), ticker)
+                self.cur.execute(sql)
             elif(time == UNSPECIFIED):
-                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified, tas) VALUES (%s, %s, %s, %s, %s)"
-                val = (convert_date(date), None, None, ticker, None)
-                # print("run " + sql % val)
-                self.cur.execute(sql, val)
+                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified, tas) VALUES ('{}', NULL, NULL, '{}', NULL)".format(date.isoformat(), ticker)
+                self.cur.execute(sql)
             else:
-                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified, tas) VALUES (%s, %s, %s, %s, %s)"
-                val = (convert_date(date), None, None, None, ticker)
-                # print("run " + sql % val)
-                self.cur.execute(sql, val)
+                sql = "INSERT INTO calendar (date, before_open, after_close, unspecified, tas) VALUES ('{}', NULL, NULL, NULL, '{}')".format(date.isoformat(), ticker)
+                self.cur.execute(sql)
+        self.con.commit()
 
     def remove_ticker(self, date, ticker, time):
         self.cur.execute(
-            "SELECT * FROM calendar WHERE date = '%s'" % convert_date(date))
+            "SELECT * FROM calendar WHERE date = '{}'".format(date.isoformat()))
         temp = self.cur.fetchall()
         if(temp):
             row = temp[0]
@@ -83,42 +67,45 @@ class CalendarAPI:
             if(time == BEFORE_OPEN):
                 tickers.from_string(row[1])
                 tickers.remove(ticker)
-                sql = "UPDATE calendar SET before_open = %s WHERE date = %s"
-                val = (tickers.to_string(), convert_date(date))
-                self.cur.execute(sql, val)
+                sql = "UPDATE calendar SET before_open = '{}' WHERE date = '{}'".format(tickers.to_string(), date.isoformat())
+                self.cur.execute(sql)
             elif(time == AFTER_CLOSE):
                 tickers.from_string(row[2])
                 tickers.remove(ticker)
-                sql = "UPDATE calendar SET after_close = %s WHERE date = %s"
-                val = (tickers.to_string(), convert_date(date))
-                self.cur.execute(sql, val)
+                sql = "UPDATE calendar SET after_close = '{}' WHERE date = '{}'".format(tickers.to_string(), date.isoformat())
+                self.cur.execute(sql)
             elif(time == UNSPECIFIED):
                 tickers.from_string(row[3])
                 tickers.remove(ticker)
-                sql = "UPDATE calendar SET unspecified = %s WHERE date = %s"
-                val = (tickers.to_string(), convert_date(date))
-                self.cur.execute(sql, val)
+                sql = "UPDATE calendar SET unspecified = '{}' WHERE date = '{}'".format(tickers.to_string(), date.isoformat())
+                self.cur.execute(sql)
             else:
                 tickers.from_string(row[4])
                 tickers.remove(ticker)
-                sql = "UPDATE calendar SET tas = %s WHERE date = %s"
-                val = (tickers.to_string(), convert_date(date))
-                self.cur.execute(sql, val)
+                sql = "UPDATE calendar SET tas = '{}' WHERE date = '{}'".format(tickers.to_string(), date.isoformat())
+                self.cur.execute(sql)
+        self.con.commit()
+
 
     def remove_date(self, date):
-        self.cur.execute("DELETE FROM calendar WHERE date = '%s'" %
-                         convert_date(date))
+        self.cur.execute("DELETE FROM calendar WHERE date = '{}'".format(date.isoformat()))
+        self.con.commit()
 
     def __init__(self):
         super().__init__()
         self.con = mariadb.connect(
             host="localhost",
+            database="usearnings",
             user="admin",
-            password="agsd-lt2018",
-            database="usearnings"
+            password="agsd-lt2018"
         )
         self.cur = self.con.cursor()
 
+    def __delete__(self, instance):
+         if(self.con.is_connected()):
+            self.cur.close()
+            self.con.close()
+            print("calendarAPI object destroyed.")
 
 # # TESTS
 # capi = CalendarAPI()
